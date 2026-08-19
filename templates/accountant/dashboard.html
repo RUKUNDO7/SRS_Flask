@@ -1,0 +1,293 @@
+{% extends 'accountant/base_accountant.html' %}
+{% block title %}Dashboard — EduRegister{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span>Accountant</span><span>/</span>Dashboard{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('accountant.new_fee') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>New Fee Record
+  </a>
+{% endblock %}
+
+{% block content %}
+<!-- Summary stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#6366f1;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-indigo"><i class="bi bi-currency-dollar"></i></div>
+        <div><div class="stat-value">{{ '{:,.0f}'.format(total_billed) }}</div><div class="stat-label">Total Billed (Frw)</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#10b981;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-emerald"><i class="bi bi-check-circle"></i></div>
+        <div><div class="stat-value">{{ '{:,.0f}'.format(total_paid) }}</div><div class="stat-label">Collected (Frw)</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#ef4444;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-red"><i class="bi bi-exclamation-circle"></i></div>
+        <div><div class="stat-value">{{ '{:,.0f}'.format(total_outstanding) }}</div><div class="stat-label">Outstanding (Frw)</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#f59e0b;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-amber"><i class="bi bi-clock-history"></i></div>
+        <div><div class="stat-value">{{ pending_count }}</div><div class="stat-label">Pending Records</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts row -->
+<div class="row g-3 mb-4">
+
+  <!-- Donut: collection status -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-header-title"><i class="bi bi-pie-chart"></i> Collection Status</div>
+      </div>
+      <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
+        <div style="position:relative;width:180px;height:180px;">
+          <canvas id="donutChart"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;
+                      align-items:center;justify-content:center;pointer-events:none;">
+            <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary);">
+              {% if total_billed > 0 %}{{ ((total_paid / total_billed) * 100)|int }}%{% else %}0%{% endif %}
+            </div>
+            <div style="font-size:.72rem;color:var(--text-muted);">collected</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:20px;margin-top:16px;font-size:.8rem;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;"></span>Paid
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;"></span>Outstanding
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bar: billed vs paid per year -->
+  <div class="col-md-8">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-header-title"><i class="bi bi-bar-chart"></i> Billed vs Collected by Year Group</div>
+      </div>
+      <div class="card-body p-4">
+        <canvas id="barChart" style="max-height:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Year & Class breakdown cards -->
+{% if year_class_breakdown %}
+<div class="mb-4">
+  <div style="font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+              color:var(--text-muted);margin-bottom:14px;">
+    Fee Breakdown by Year &amp; Class
+  </div>
+  <div class="row g-3">
+    {% for row in year_class_breakdown %}
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="card-header-title"><i class="bi bi-mortarboard"></i> {{ row.year }}</div>
+          <span style="font-size:.78rem;font-weight:700;
+                       color:{% if row.total_balance > 0 %}#ef4444{% else %}#10b981{% endif %};">
+            Frw {{ '{:,.0f}'.format(row.total_balance) }} owed
+          </span>
+        </div>
+        <div class="card-body p-0" style="border-radius:0 0 12px 12px;">
+          <div style="padding:10px 16px 0;display:flex;justify-content:space-between;
+                      font-size:.78rem;color:var(--text-muted);">
+            <span>Billed: <strong style="color:var(--text-primary);">Frw {{ '{:,.0f}'.format(row.total_billed) }}</strong></span>
+            <span>Paid: <strong style="color:#10b981;">Frw {{ '{:,.0f}'.format(row.total_paid) }}</strong></span>
+          </div>
+          {% if row.total_billed > 0 %}
+          <div style="margin:6px 16px 10px;background:#f1f5f9;border-radius:99px;height:5px;">
+            <div style="height:5px;border-radius:99px;background:#10b981;
+                        width:{{ [(row.total_paid / row.total_billed * 100)|int, 100]|min }}%;"></div>
+          </div>
+          {% endif %}
+          {% for c in row.classes %}
+          <div style="padding:8px 16px;border-top:1px solid var(--border-color);
+                      display:flex;align-items:center;gap:10px;">
+            <div style="width:74px;flex-shrink:0;">
+              <a href="{{ url_for('accountant.fees', year_group=row.year,
+                         assigned_class=c.label.replace('Class ','') if 'Class' in c.label else '') }}"
+                 style="text-decoration:none;">
+                <span class="badge-soft badge-soft-{{ 'indigo' if 'Class' in c.label else 'secondary' }}"
+                      style="font-size:.75rem;">{{ c.label }}</span>
+              </a>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-muted);flex-shrink:0;">{{ c.count }} stu.</div>
+            <div style="margin-left:auto;text-align:right;font-size:.78rem;">
+              <span style="color:#10b981;">{{ '{:,.0f}'.format(c.paid) }}</span>
+              <span style="color:var(--text-light);margin:0 2px;">/</span>
+              <span>{{ '{:,.0f}'.format(c.billed) }}</span>
+              {% if c.balance > 0 %}
+              <div style="color:#ef4444;font-weight:600;font-size:.7rem;">
+                -{{ '{:,.0f}'.format(c.balance) }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent records -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header-title"><i class="bi bi-receipt"></i> Recent Fee Records</div>
+    <a href="{{ url_for('accountant.fees') }}" class="btn btn-outline-secondary btn-sm">View all</a>
+  </div>
+  {% if recent_records %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Student</th><th>Year / Class</th><th>Description</th>
+        <th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th>
+        <th class="pe-4 text-end">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for r in recent_records %}
+        <tr>
+          <td class="ps-4">
+            <div style="font-weight:600;">{{ r.student.user.full_name }}</div>
+            <code>{{ r.student.student_id }}</code>
+          </td>
+          <td style="font-size:.82rem;">
+            {% if r.student.year_group %}<span class="badge-soft badge-soft-info">{{ r.student.year_group }}</span>{% endif %}
+            {% if r.student.assigned_class %}<span class="badge-soft badge-soft-indigo ms-1">Class {{ r.student.assigned_class }}</span>{% endif %}
+          </td>
+          <td style="font-size:.83rem;">{{ r.description }}</td>
+          <td style="font-weight:600;">{{ '{:,.0f}'.format(r.amount) }}</td>
+          <td style="color:#10b981;">{{ '{:,.0f}'.format(r.paid_amount) }}</td>
+          <td style="color:{% if r.balance > 0 %}#ef4444{% else %}#10b981{% endif %};font-weight:600;">
+            {{ '{:,.0f}'.format(r.balance) }}
+          </td>
+          <td>
+            <span class="badge-soft badge-soft-{{ 'success' if r.status == 'paid' else ('warning' if r.status == 'partial' else ('danger' if r.status == 'overdue' else 'secondary')) }}">
+              {{ r.status }}
+            </span>
+          </td>
+          <td class="pe-4 text-end">
+            {% if r.status != 'paid' %}
+            <a href="{{ url_for('accountant.record_payment', record_id=r.id) }}"
+               class="btn btn-outline-success btn-sm">
+              <i class="bi bi-cash me-1"></i>Pay
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-receipt empty-state-icon"></i>
+    <div class="empty-state-title">No fee records yet</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+// ── Donut chart ──────────────────────────────────────────────────────────────
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [{{ total_paid }}, {{ total_outstanding }}],
+      backgroundColor: ['#10b981', '#ef4444'],
+      borderWidth: 0,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    cutout: '72%',
+    plugins: { legend: { display: false }, tooltip: {
+      callbacks: {
+        label: ctx => ' Frw ' + ctx.raw.toLocaleString()
+      }
+    }},
+    animation: { animateRotate: true, duration: 800 }
+  }
+});
+
+// ── Bar chart ────────────────────────────────────────────────────────────────
+const barData = {
+  labels: [{% for row in year_class_breakdown %}'{{ row.year }}'{% if not loop.last %},{% endif %}{% endfor %}],
+  datasets: [
+    {
+      label: 'Billed',
+      data: [{% for row in year_class_breakdown %}{{ row.total_billed }}{% if not loop.last %},{% endif %}{% endfor %}],
+      backgroundColor: 'rgba(99,102,241,0.25)',
+      borderColor: '#6366f1',
+      borderWidth: 2,
+      borderRadius: 6,
+    },
+    {
+      label: 'Collected',
+      data: [{% for row in year_class_breakdown %}{{ row.total_paid }}{% if not loop.last %},{% endif %}{% endfor %}],
+      backgroundColor: 'rgba(16,185,129,0.25)',
+      borderColor: '#10b981',
+      borderWidth: 2,
+      borderRadius: 6,
+    },
+    {
+      label: 'Outstanding',
+      data: [{% for row in year_class_breakdown %}{{ row.total_balance }}{% if not loop.last %},{% endif %}{% endfor %}],
+      backgroundColor: 'rgba(239,68,68,0.18)',
+      borderColor: '#ef4444',
+      borderWidth: 2,
+      borderRadius: 6,
+    }
+  ]
+};
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: barData,
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { position: 'top', labels: { font: { size: 12 }, boxWidth: 12, padding: 16 } },
+      tooltip: { callbacks: { label: ctx => ' Frw ' + ctx.raw.toLocaleString() } }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { callback: v => 'Frw ' + (v/1000).toFixed(0) + 'k', font: { size: 11 } },
+        grid: { color: 'rgba(0,0,0,.05)' }
+      },
+      x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+    },
+    animation: { duration: 700 }
+  }
+});
+</script>
+{% endblock %}
