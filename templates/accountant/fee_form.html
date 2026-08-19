@@ -1,0 +1,62 @@
+{% extends 'accountant/base_accountant.html' %}
+{% block title %}New Fee Record — EduRegister{% endblock %}
+{% block page_title %}New Fee Record{% endblock %}
+{% block breadcrumb %}<span>Accountant</span><span>/</span><a href="{{ url_for('accountant.fees') }}" style="color:var(--text-muted);text-decoration:none;">Fees</a><span>/</span>New{% endblock %}
+
+{% block content %}
+<div class="col-lg-6">
+  <div class="card">
+    <div class="card-header"><div class="card-header-title"><i class="bi bi-receipt"></i> Create Fee Record</div></div>
+    <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Student *</label>
+          <select name="student_id" class="form-select" required>
+            <option value="">— Select student —</option>
+            {% for s in students %}
+            <option value="{{ s.id }}" {% if form.get('student_id') == s.id|string %}selected{% endif %}>
+              {{ s.user.full_name }} ({{ s.student_id }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description *</label>
+          <input type="text" name="description" class="form-control" required
+                 placeholder="e.g. Tuition Fee — Term 1" value="{{ form.get('description','') }}">
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Fee Type *</label>
+            <select name="fee_type" class="form-select" required>
+              <option value="tuition"  {% if form.get('fee_type','tuition') == 'tuition' %}selected{% endif %}>Tuition</option>
+              <option value="lab"      {% if form.get('fee_type') == 'lab' %}selected{% endif %}>Lab</option>
+              <option value="library"  {% if form.get('fee_type') == 'library' %}selected{% endif %}>Library</option>
+              <option value="hostel"   {% if form.get('fee_type') == 'hostel' %}selected{% endif %}>Hostel</option>
+              <option value="other"    {% if form.get('fee_type') == 'other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Amount ($) *</label>
+            <input type="number" name="amount" class="form-control" required min="0" step="0.01"
+                   value="{{ form.get('amount','') }}" placeholder="0.00">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Semester *</label>
+            <input type="text" name="semester" class="form-control" required placeholder="e.g. Term 1 2024/2025"
+                   value="{{ form.get('semester','') }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Due Date</label>
+            <input type="date" name="due_date" class="form-control" value="{{ form.get('due_date','') }}">
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Create Record</button>
+          <a href="{{ url_for('accountant.fees') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
