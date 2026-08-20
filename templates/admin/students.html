@@ -1,0 +1,111 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Students — EduRegister{% endblock %}
+{% block page_title %}Students{% endblock %}
+{% block breadcrumb %}<span>Admin</span><span>/</span>Students{% endblock %}
+{% block topbar_actions %}
+  {% if active_term %}
+  <a href="{{ url_for('admin.new_student') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-person-plus me-1"></i>Register Student
+  </a>
+  {% else %}
+  <a href="{{ url_for('admin.terms') }}" class="btn btn-warning btn-sm">
+    <i class="bi bi-calendar2-range me-1"></i>Set Active Term
+  </a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  {% if selected_term %}
+    <span style="font-size:.83rem;color:var(--text-muted);">Showing: </span>
+    <span class="badge-soft badge-soft-success">{{ selected_term.name }} — {{ selected_term.academic_year }}</span>
+  {% else %}
+    <span style="font-size:.83rem;color:var(--text-muted);">Showing all terms</span>
+  {% endif %}
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar mb-4">
+  <form method="GET" class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label">Term</label>
+      <select name="term_id" class="form-select">
+        <option value="">All terms</option>
+        {% for t in all_terms %}
+        <option value="{{ t.id }}" {% if term_id_filter == t.id|string %}selected{% endif %}>
+          {{ t.name }} — {{ t.academic_year }}{% if t.is_active %} (Active){% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Search</label>
+      <input type="text" name="search" class="form-control" placeholder="Name, ID or email…" value="{{ search }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Year</label>
+      <select name="year_group" class="form-select">
+        <option value="">All</option>
+        {% for yg in year_groups %}
+        <option value="{{ yg }}" {% if year_filter == yg %}selected{% endif %}>{{ yg }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All</option>
+        <option value="active"    {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+        <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+        <option value="graduated" {% if status_filter == 'graduated' %}selected{% endif %}>Graduated</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search me-1"></i>Filter</button>
+      <a href="{{ url_for('admin.students') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  {% if students %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Student ID</th><th>Name</th><th>Term</th><th>Year</th><th>Class</th><th>Gender</th><th>Status</th><th class="pe-4 text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td class="ps-4"><code>{{ s.student_id }}</code></td>
+          <td style="font-weight:600;">{{ s.user.full_name }}</td>
+          <td style="font-size:.8rem;color:var(--text-muted);">
+            {% if s.term %}{{ s.term.name }}<br><span style="font-size:.72rem;">{{ s.term.academic_year }}</span>{% else %}—{% endif %}
+          </td>
+          <td>{% if s.year_group %}<span class="badge-soft badge-soft-info">{{ s.year_group }}</span>{% else %}—{% endif %}</td>
+          <td>{% if s.assigned_class %}<span class="badge-soft badge-soft-indigo">Class {{ s.assigned_class }}</span>{% else %}<span style="color:var(--text-light)">—</span>{% endif %}</td>
+          <td style="color:var(--text-muted);font-size:.85rem;">{{ s.gender or '—' }}</td>
+          <td>
+            <span class="badge-soft badge-soft-{{ 'success' if s.status == 'active' else ('warning' if s.status == 'suspended' else 'secondary') }}">{{ s.status }}</span>
+          </td>
+          <td class="pe-4 text-end">
+            <a href="{{ url_for('admin.edit_student', student_id=s.id) }}" class="btn btn-ghost btn-sm me-1" title="Edit"><i class="bi bi-pencil"></i></a>
+            <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.id) }}" class="d-inline"
+                  onsubmit="return confirm('Delete {{ s.user.full_name }}? This cannot be undone.')">
+              <button class="btn btn-ghost btn-sm" style="color:#ef4444;" title="Delete"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-people empty-state-icon"></i>
+    <div class="empty-state-title">No students found</div>
+    <div class="empty-state-text">{% if active_term %}<a href="{{ url_for('admin.new_student') }}">Register one now</a>{% else %}Activate a term first{% endif %}</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
