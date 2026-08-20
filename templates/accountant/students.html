@@ -1,0 +1,37 @@
+{% extends 'accountant/base_accountant.html' %}
+{% block title %}Students — Accountant{% endblock %}
+{% block page_title %}Student Overview{% endblock %}
+{% block breadcrumb %}<span>Accountant</span><span>/</span>Students{% endblock %}
+
+{% block content %}
+<div class="card">
+  {% if summaries %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Student ID</th><th>Name</th><th>Email</th><th>Total Billed</th><th>Paid</th><th>Balance</th><th class="pe-4 text-end">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for s in summaries %}
+        <tr>
+          <td class="ps-4"><code>{{ s.student.student_id }}</code></td>
+          <td style="font-weight:600;">{{ s.student.user.full_name }}</td>
+          <td style="color:var(--text-muted);font-size:.83rem;">{{ s.student.user.email }}</td>
+          <td style="font-weight:600;">${{ '{:,.2f}'.format(s.total_billed) }}</td>
+          <td style="color:#10b981;">${{ '{:,.2f}'.format(s.total_paid) }}</td>
+          <td style="font-weight:600;color:{% if s.balance > 0 %}#ef4444{% else %}#10b981{% endif %};">${{ '{:,.2f}'.format(s.balance) }}</td>
+          <td class="pe-4 text-end">
+            <a href="{{ url_for('accountant.student_fees', student_id=s.student.id) }}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-receipt me-1"></i>View Fees
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><i class="bi bi-people empty-state-icon"></i><div class="empty-state-title">No students found</div></div>
+  {% endif %}
+</div>
+{% endblock %}
