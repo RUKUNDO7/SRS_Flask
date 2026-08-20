@@ -1,0 +1,53 @@
+{% extends 'accountant/base_accountant.html' %}
+{% block title %}Record Payment — EduRegister{% endblock %}
+{% block page_title %}Record Payment{% endblock %}
+{% block breadcrumb %}<span>Accountant</span><span>/</span><a href="{{ url_for('accountant.fees') }}" style="color:var(--text-muted);text-decoration:none;">Fees</a><span>/</span>Payment{% endblock %}
+
+{% block content %}
+<div class="row g-3 col-lg-7">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><i class="bi bi-person-vcard"></i> Fee Summary</div></div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        <dl class="row mb-0" style="font-size:.87rem;row-gap:8px;">
+          <dt class="col-4" style="color:var(--text-muted);font-weight:500;">Student</dt>
+          <dd class="col-8 fw-semibold">{{ record.student.user.full_name }}</dd>
+          <dt class="col-4" style="color:var(--text-muted);font-weight:500;">Student ID</dt>
+          <dd class="col-8"><code>{{ record.student.student_id }}</code></dd>
+          <dt class="col-4" style="color:var(--text-muted);font-weight:500;">Description</dt>
+          <dd class="col-8">{{ record.description }}</dd>
+          <dt class="col-4" style="color:var(--text-muted);font-weight:500;">Semester</dt>
+          <dd class="col-8">{{ record.semester }}</dd>
+          <dt class="col-4" style="color:var(--text-muted);font-weight:500;">Total Amount</dt>
+          <dd class="col-8" style="font-weight:600;">${{ '{:,.2f}'.format(record.amount) }}</dd>
+          <dt class="col-4" style="color:var(--text-muted);font-weight:500;">Already Paid</dt>
+          <dd class="col-8" style="color:#10b981;font-weight:600;">${{ '{:,.2f}'.format(record.paid_amount) }}</dd>
+          <dt class="col-4" style="color:var(--text-primary);font-weight:700;">Balance Due</dt>
+          <dd class="col-8" style="color:#ef4444;font-weight:700;font-size:1.1rem;">${{ '{:,.2f}'.format(record.balance) }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><i class="bi bi-cash"></i> Enter Payment</div></div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        <form method="POST">
+          <div class="mb-4">
+            <label class="form-label">Payment Amount ($) *</label>
+            <input type="number" name="payment_amount" class="form-control" required
+                   min="0.01" step="0.01" max="{{ record.balance }}"
+                   value="{{ '{:.2f}'.format(record.balance) }}">
+            <div class="form-text">Maximum: ${{ '{:,.2f}'.format(record.balance) }}</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Confirm Payment</button>
+            <a href="{{ url_for('accountant.fees') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
