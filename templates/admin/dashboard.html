@@ -1,0 +1,114 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Dashboard — EduRegister{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span>Admin</span><span>/</span>Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Active term banner -->
+{% if active_term %}
+<div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;border-radius:12px;padding:14px 20px;margin-bottom:32px;display:flex;align-items:center;gap:12px;">
+  <i class="bi bi-calendar-check-fill" style="color:#10b981;font-size:1.1rem;"></i>
+  <div>
+    <span style="font-weight:600;color:#065f46;">Active Term:</span>
+    <span style="color:#065f46;margin-left:6px;">{{ active_term.name }} — {{ active_term.academic_year }}</span>
+    {% if active_term.start_date and active_term.end_date %}
+    <span style="color:#6ee7b7;font-size:.8rem;margin-left:10px;">
+      {{ active_term.start_date.strftime('%b %d') }} – {{ active_term.end_date.strftime('%b %d, %Y') }}
+    </span>
+    {% endif %}
+  </div>
+  <a href="{{ url_for('admin.terms') }}" class="ms-auto btn btn-sm btn-outline-secondary" style="font-size:.78rem;">
+    Manage Terms
+  </a>
+</div>
+{% endif %}
+
+<!-- Welcome heading -->
+<div style="margin-bottom:32px;">
+  <h5 style="font-weight:700;font-size:1.15rem;color:var(--text-primary);margin-bottom:4px;">
+    What would you like to do?
+  </h5>
+  <p style="color:var(--text-muted);font-size:.88rem;margin:0;">Choose an action to get started.</p>
+</div>
+
+<!-- Two choice cards -->
+<div class="row g-4" style="max-width:780px;">
+
+  <!-- Register Student -->
+  <div class="col-md-6">
+    <a href="{{ url_for('admin.new_student') }}"
+       style="text-decoration:none;"
+       {% if not active_term %}onclick="return confirm('No active term is set. You will be redirected to Terms. Continue?')"{% endif %}>
+      <div class="card h-100" style="border:2px solid transparent;transition:border-color .2s,box-shadow .2s,transform .2s;cursor:pointer;"
+           onmouseover="this.style.borderColor='#6366f1';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(99,102,241,.15)';"
+           onmouseout="this.style.borderColor='transparent';this.style.transform='translateY(0)';this.style.boxShadow='';">
+        <div class="card-body p-4" style="border-radius:12px;">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+            <i class="bi bi-person-plus-fill" style="font-size:1.4rem;color:#fff;"></i>
+          </div>
+          <div style="font-size:1.05rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;">
+            Register Student
+          </div>
+          <p style="font-size:.85rem;color:var(--text-muted);margin:0;line-height:1.6;">
+            Add a new student to the system. Fill in their personal details, academic year, term, and login credentials.
+          </p>
+          <div style="margin-top:20px;display:inline-flex;align-items:center;gap:6px;font-size:.83rem;font-weight:600;color:#6366f1;">
+            Register now <i class="bi bi-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- View Students -->
+  <div class="col-md-6">
+    <a href="{{ url_for('admin.students') }}" style="text-decoration:none;">
+      <div class="card h-100" style="border:2px solid transparent;transition:border-color .2s,box-shadow .2s,transform .2s;cursor:pointer;"
+           onmouseover="this.style.borderColor='#10b981';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,.15)';"
+           onmouseout="this.style.borderColor='transparent';this.style.transform='translateY(0)';this.style.boxShadow='';">
+        <div class="card-body p-4" style="border-radius:12px;">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+            <i class="bi bi-people-fill" style="font-size:1.4rem;color:#fff;"></i>
+          </div>
+          <div style="font-size:1.05rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;">
+            View Registered Students
+          </div>
+          <p style="font-size:.85rem;color:var(--text-muted);margin:0;line-height:1.6;">
+            Browse, search, and manage all registered students. Filter by term, year group, or status.
+          </p>
+          <div style="margin-top:20px;display:inline-flex;align-items:center;gap:6px;font-size:.83rem;font-weight:600;color:#10b981;">
+            View students <i class="bi bi-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+</div>
+
+<!-- Quick stats row underneath -->
+{% if stats.total_students > 0 %}
+<div class="row g-3 mt-2" style="max-width:780px;">
+  <div class="col-4">
+    <div style="background:#f8fafc;border:1px solid var(--border-color);border-radius:10px;padding:14px 16px;text-align:center;">
+      <div style="font-size:1.4rem;font-weight:700;color:#6366f1;">{{ stats.total_students }}</div>
+      <div style="font-size:.75rem;color:var(--text-muted);">{{ 'This Term' if active_term else 'Total' }}</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div style="background:#f8fafc;border:1px solid var(--border-color);border-radius:10px;padding:14px 16px;text-align:center;">
+      <div style="font-size:1.4rem;font-weight:700;color:#10b981;">{{ stats.active_students }}</div>
+      <div style="font-size:.75rem;color:var(--text-muted);">Active</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div style="background:#f8fafc;border:1px solid var(--border-color);border-radius:10px;padding:14px 16px;text-align:center;">
+      <div style="font-size:1.4rem;font-weight:700;color:#f59e0b;">{{ all_terms|length }}</div>
+      <div style="font-size:.75rem;color:var(--text-muted);">Terms</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
