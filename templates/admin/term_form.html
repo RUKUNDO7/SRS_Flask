@@ -1,0 +1,55 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Add Term — EduRegister{% endblock %}
+{% block page_title %}Add Term{% endblock %}
+{% block breadcrumb %}<span>Admin</span><span>/</span><a href="{{ url_for('admin.terms') }}" style="color:var(--text-muted);text-decoration:none;">Terms</a><span>/</span>New{% endblock %}
+
+{% block content %}
+<div class="col-lg-5">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title"><i class="bi bi-calendar2-plus"></i> Create School Term</div>
+    </div>
+    <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Term *</label>
+          <select name="name" class="form-select" required>
+            <option value="">— Select —</option>
+            {% for t in terms %}
+            <option value="{{ t }}" {% if form.get('name') == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Academic Year *</label>
+          <input type="text" name="academic_year" class="form-control" required
+                 placeholder="e.g. 2024/2025" value="{{ form.get('academic_year', '') }}">
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label class="form-label">Start Date</label>
+            <input type="date" name="start_date" class="form-control" value="{{ form.get('start_date', '') }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label">End Date</label>
+            <input type="date" name="end_date" class="form-control" value="{{ form.get('end_date', '') }}">
+          </div>
+        </div>
+        <div class="mb-4 p-3" style="background:#f8fafc;border-radius:8px;border:1px solid var(--border-color);">
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" name="activate_now" value="1" id="activateNow" checked>
+            <label class="form-check-label" for="activateNow" style="font-weight:600;font-size:.87rem;">
+              Set as active term immediately
+            </label>
+          </div>
+          <div class="form-text mt-1">Activating deactivates the current active term.</div>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Create Term</button>
+          <a href="{{ url_for('admin.terms') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
