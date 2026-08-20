@@ -1,0 +1,58 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{{ term.name }} Students — EduRegister{% endblock %}
+{% block page_title %}{{ term.name }} — {{ term.academic_year }}{% endblock %}
+{% block breadcrumb %}<span>Admin</span><span>/</span><a href="{{ url_for('admin.terms') }}" style="color:var(--text-muted);text-decoration:none;">Terms</a><span>/</span>{{ term.name }}{% endblock %}
+{% block topbar_actions %}
+  {% if term.is_active %}
+  <a href="{{ url_for('admin.new_student') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-person-plus me-1"></i>Register Student
+  </a>
+  {% endif %}
+  <a href="{{ url_for('admin.terms') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>All Terms
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <span style="font-size:.85rem;color:var(--text-muted);">{{ students|length }} student(s)</span>
+  {% if term.is_active %}<span class="badge-soft badge-soft-success">Active Term</span>{% endif %}
+</div>
+
+<div class="card">
+  {% if students %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Student ID</th><th>Name</th><th>Year</th><th>Class</th><th>Gender</th><th>Status</th><th class="pe-4 text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td class="ps-4"><code>{{ s.student_id }}</code></td>
+          <td style="font-weight:600;">{{ s.user.full_name }}</td>
+          <td>{% if s.year_group %}<span class="badge-soft badge-soft-info">{{ s.year_group }}</span>{% else %}—{% endif %}</td>
+          <td>{% if s.assigned_class %}<span class="badge-soft badge-soft-indigo">Class {{ s.assigned_class }}</span>{% else %}<span style="color:var(--text-light)">—</span>{% endif %}</td>
+          <td style="color:var(--text-muted);font-size:.85rem;">{{ s.gender or '—' }}</td>
+          <td><span class="badge-soft badge-soft-{{ 'success' if s.status == 'active' else ('warning' if s.status == 'suspended' else 'secondary') }}">{{ s.status }}</span></td>
+          <td class="pe-4 text-end">
+            <a href="{{ url_for('admin.edit_student', student_id=s.id) }}" class="btn btn-ghost btn-sm me-1"><i class="bi bi-pencil"></i></a>
+            <form method="POST" action="{{ url_for('admin.delete_student', student_id=s.id) }}" class="d-inline"
+                  onsubmit="return confirm('Delete {{ s.user.full_name }}?')">
+              <button class="btn btn-ghost btn-sm" style="color:#ef4444;"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-people empty-state-icon"></i>
+    <div class="empty-state-title">No students in this term</div>
+    {% if term.is_active %}<div class="empty-state-text"><a href="{{ url_for('admin.new_student') }}">Register the first student</a></div>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
