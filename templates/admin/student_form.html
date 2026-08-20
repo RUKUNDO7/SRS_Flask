@@ -1,0 +1,298 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}{{ 'Edit' if action == 'edit' else 'Register' }} Student — EduRegister{% endblock %}
+{% block page_title %}{{ 'Edit Student' if action == 'edit' else 'Register Student' }}{% endblock %}
+{% block breadcrumb %}<span>Admin</span><span>/</span><a href="{{ url_for('admin.students') }}" style="color:var(--text-muted);text-decoration:none;">Students</a><span>/</span>{{ 'Edit' if action == 'edit' else 'New' }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">
+          <i class="bi bi-person-{{ 'pencil' if action == 'edit' else 'plus' }}"></i>
+          {{ 'Edit Student Record' if action == 'edit' else 'New Student Registration' }}
+        </div>
+      </div>
+      <div class="card-body p-4" style="background:#fff;border-radius:0 0 12px 12px;">
+
+        <!-- ── Last registered notice ───────────────────────────────── -->
+        {% if request.args.get('registered') %}
+        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;
+                    border-radius:10px;padding:14px 18px;margin-bottom:24px;
+                    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <i class="bi bi-check-circle-fill" style="color:#10b981;font-size:1.2rem;flex-shrink:0;"></i>
+            <div>
+              <div style="font-weight:700;font-size:.9rem;color:#065f46;">
+                {{ request.args.get('name') }} registered successfully
+              </div>
+              <div style="font-size:.78rem;color:#6ee7b7;">
+                ID: <code style="background:rgba(16,185,129,.15);color:#065f46;">{{ request.args.get('registered') }}</code>
+                &nbsp;— Form is ready for the next student.
+              </div>
+            </div>
+          </div>
+          <a href="{{ url_for('admin.students') }}"
+             class="btn btn-sm btn-outline-secondary" style="white-space:nowrap;">
+            <i class="bi bi-people me-1"></i>View All Students
+          </a>
+        </div>
+        {% endif %}
+
+        <form method="POST">
+
+          <!-- ── Term (first field) ──────────────────────────────────── -->
+          <div class="form-section-title">Term</div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Term *</label>
+              <select name="term_id" class="form-select" required>
+                <option value="">— Select term —</option>
+                {% for t in all_terms %}
+                <option value="{{ t.id }}"
+                  {% if action == 'edit' and student.term_id == t.id %}selected
+                  {% elif action == 'new' and active_term and active_term.id == t.id %}selected
+                  {% elif form.get('term_id') == t.id|string %}selected{% endif %}>
+                  {{ t.name }} — {{ t.academic_year }}{% if t.is_active %} (Active){% endif %}
+                </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Select the school term for this registration.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Year Group *</label>
+              <select name="year_group" class="form-select" required>
+                <option value="">— Select year —</option>
+                {% for yg in year_groups %}
+                <option value="{{ yg }}"
+                  {% if action == 'edit' and student.year_group == yg %}selected
+                  {% elif form.get('year_group') == yg %}selected{% endif %}>{{ yg }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- ── Account Information ────────────────────────────────── -->
+          <div class="form-section-title">Account Information</div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Full Name *</label>
+              <input type="text" name="full_name" class="form-control" required
+                     value="{{ student.user.full_name if action == 'edit' else form.get('full_name','') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email Address *</label>
+              <input type="email" name="email" class="form-control" required
+                     value="{{ student.user.email if action == 'edit' else form.get('email','') }}">
+            </div>
+            {% if action == 'edit' %}
+            <div class="col-md-6">
+              <label class="form-label">New Password <span style="color:var(--text-muted);font-weight:400;">(leave blank to keep)</span></label>
+              <div class="input-group">
+                <input type="password" name="new_password" class="form-control"
+                       placeholder="Leave blank to keep current" id="edit_password">
+                <button type="button" class="input-group-text"
+                        style="cursor:pointer;background:#fff;border-left:none;"
+                        onclick="togglePwd('edit_password','edit_pwd_icon')" title="Show/hide">
+                  <i class="bi bi-eye" id="edit_pwd_icon"></i>
+                </button>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- ── Personal Details ───────────────────────────────────── -->
+          <div class="form-section-title">Personal Details</div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" name="date_of_birth" class="form-control"
+                     id="dob_input"
+                     max="{{ today }}"
+                     min="{{ min_dob }}"
+                     value="{{ student.date_of_birth.strftime('%Y-%m-%d') if action == 'edit' and student.date_of_birth else '' }}"
+                     onchange="validateDob(this)">
+              <div class="form-text" id="dob_hint">Age must be between 5 and 25 years.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Gender</label>
+              <select name="gender" class="form-select">
+                <option value="">— Select —</option>
+                <option value="Male"   {% if action == 'edit' and student.gender == 'Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if action == 'edit' and student.gender == 'Female' %}selected{% endif %}>Female</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea name="address" class="form-control" rows="2">{{ student.address if action == 'edit' else '' }}</textarea>
+            </div>
+          </div>
+
+          <!-- ── School Fees ─────────────────────────────────────────── -->
+          {% if action == 'new' %}
+          <div class="form-section-title">School Fees</div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-5">
+              <label class="form-label">Payment Status *</label>
+              <select name="fee_status" id="fee_status" class="form-select" required
+                      onchange="toggleRemainingField(this.value)">
+                <option value="">— Select status —</option>
+                <option value="paid"    {% if form.get('fee_status') == 'paid' %}selected{% endif %}>Paid</option>
+                <option value="partial" {% if form.get('fee_status') == 'partial' %}selected{% endif %}>Partial</option>
+                <option value="pending" {% if form.get('fee_status') == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="overdue" {% if form.get('fee_status') == 'overdue' %}selected{% endif %}>Overdue</option>
+              </select>
+              <div class="form-text">Total school fees: <strong>Frw 85,000</strong></div>
+            </div>
+
+            <!-- Remaining amount — shown only for partial/overdue -->
+            <div class="col-md-5" id="fee_remaining_wrap" style="display:none;">
+              <label class="form-label">Amount Still Owed <span style="color:var(--text-muted);font-weight:400;">(Frw)</span></label>
+              <div class="input-group">
+                <span class="input-group-text">Frw</span>
+                <input type="number" name="fee_remaining" id="fee_remaining"
+                       class="form-control" min="1" max="85000" step="0.01" placeholder="0"
+                       value="{{ form.get('fee_remaining', '') }}">
+              </div>
+              <div class="form-text">How much is still unpaid out of Frw 85,000.</div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- ── Guardian Information ───────────────────────────────── -->
+          <div class="form-section-title">Guardian Information</div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Guardian Name</label>
+              <input type="text" name="guardian_name" class="form-control"
+                     value="{{ student.guardian_name if action == 'edit' else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Guardian Phone</label>
+              <input type="text" name="guardian_phone" class="form-control"
+                     value="{{ student.guardian_phone if action == 'edit' else '' }}">
+            </div>
+          </div>
+
+          <!-- ── Status (edit only) ─────────────────────────────────── -->
+          {% if action == 'edit' %}
+          <div class="form-section-title">Enrollment Status</div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select">
+                <option value="active"    {% if student.status == 'active' %}selected{% endif %}>Active</option>
+                <option value="suspended" {% if student.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                <option value="graduated" {% if student.status == 'graduated' %}selected{% endif %}>Graduated</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Assigned Class</label>
+              <input type="text" class="form-control"
+                     value="{{ 'Class ' + student.assigned_class if student.assigned_class else 'Not assigned yet' }}" disabled>
+              <div class="form-text">Assigned by the DOS</div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-2 pt-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i>{{ 'Save Changes' if action == 'edit' else 'Register Student' }}
+            </button>
+            <a href="{{ url_for('admin.students') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-people me-1"></i>{{ 'Cancel' if action == 'edit' else 'View Students' }}
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if action == 'edit' %}
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title"><i class="bi bi-person-vcard"></i> Student Info</div>
+      </div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        <dl class="row mb-0" style="font-size:.85rem;row-gap:10px;">
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Student ID</dt>
+          <dd class="col-7"><code>{{ student.student_id }}</code></dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Username</dt>
+          <dd class="col-7">{{ student.user.username }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Year</dt>
+          <dd class="col-7">{{ student.year_group or '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Class</dt>
+          <dd class="col-7">{{ ('Class ' + student.assigned_class) if student.assigned_class else '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Enrolled</dt>
+          <dd class="col-7">{{ student.enrollment_date.strftime('%b %d, %Y') if student.enrollment_date else '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Courses</dt>
+          <dd class="col-7">{{ student.enrollments | selectattr('status','equalto','enrolled') | list | length }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function togglePwd(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon  = document.getElementById(iconId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+  }
+
+  function toggleRemainingField(val) {
+    const wrap  = document.getElementById('fee_remaining_wrap');
+    const input = document.getElementById('fee_remaining');
+    if (!wrap) return;
+    // Show the remaining amount field only when payment is partial or overdue
+    if (val === 'partial' || val === 'overdue') {
+      wrap.style.display = '';
+      input.required = true;
+    } else {
+      wrap.style.display = 'none';
+      input.required = false;
+      input.value = '';
+    }
+  }
+
+  function validateDob(input) {
+    const hint = document.getElementById('dob_hint');
+    if (!input.value) { hint.style.color = ''; hint.textContent = 'Age must be between 5 and 25 years.'; return; }
+    const dob   = new Date(input.value);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+
+    if (dob > today) {
+      input.setCustomValidity('Date of birth cannot be in the future.');
+      hint.style.color = '#ef4444'; hint.textContent = '✕ Date of birth cannot be in the future.';
+    } else if (age < 5) {
+      input.setCustomValidity('Student must be at least 5 years old.');
+      hint.style.color = '#ef4444'; hint.textContent = '✕ Student must be at least 5 years old.';
+    } else if (age > 25) {
+      input.setCustomValidity('Student must be 25 years old or younger.');
+      hint.style.color = '#ef4444'; hint.textContent = '✕ Student must be 25 years old or younger.';
+    } else {
+      input.setCustomValidity('');
+      hint.style.color = '#10b981'; hint.textContent = '✓ Age: ' + age + ' years';
+    }
+  }
+
+  // Re-apply on page load
+  document.addEventListener('DOMContentLoaded', function () {
+    const sel = document.getElementById('fee_status');
+    if (sel) toggleRemainingField(sel.value);
+    const dob = document.getElementById('dob_input');
+    if (dob && dob.value) validateDob(dob);
+  });
+</script>
+{% endblock %}
