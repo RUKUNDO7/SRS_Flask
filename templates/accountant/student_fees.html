@@ -1,0 +1,87 @@
+{% extends 'accountant/base_accountant.html' %}
+{% block title %}{{ student.user.full_name }} — Fees{% endblock %}
+{% block page_title %}Fee Statement{% endblock %}
+{% block breadcrumb %}<span>Accountant</span><span>/</span><a href="{{ url_for('accountant.students') }}" style="color:var(--text-muted);text-decoration:none;">Students</a><span>/</span>{{ student.user.full_name }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('accountant.new_fee') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>Add Fee
+  </a>
+  <a href="{{ url_for('accountant.students') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;">
+    {{ student.user.full_name[0].upper() }}
+  </div>
+  <div>
+    <div style="font-weight:700;font-size:1rem;">{{ student.user.full_name }}</div>
+    <div style="font-size:.82rem;color:var(--text-muted);"><code>{{ student.student_id }}</code> · {{ student.user.email }}</div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#6366f1;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-indigo"><i class="bi bi-currency-dollar"></i></div>
+        <div><div class="stat-value">${{ '{:,.2f}'.format(total_billed) }}</div><div class="stat-label">Total Billed</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#10b981;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-emerald"><i class="bi bi-check-circle"></i></div>
+        <div><div class="stat-value">${{ '{:,.2f}'.format(total_paid) }}</div><div class="stat-label">Paid</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:{% if balance > 0 %}#ef4444{% else %}#10b981{% endif %};"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon {% if balance > 0 %}icon-red{% else %}icon-emerald{% endif %}"><i class="bi bi-{% if balance > 0 %}exclamation-circle{% else %}check-circle{% endif %}"></i></div>
+        <div><div class="stat-value" style="color:{% if balance > 0 %}#ef4444{% else %}#10b981{% endif %};">${{ '{:,.2f}'.format(balance) }}</div><div class="stat-label">Balance</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  {% if records %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Description</th><th>Type</th><th>Semester</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Due</th><th>Status</th><th class="pe-4 text-end">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td class="ps-4" style="font-weight:600;">{{ r.description }}</td>
+          <td><span class="badge-soft badge-soft-secondary text-capitalize">{{ r.fee_type }}</span></td>
+          <td style="font-size:.8rem;color:var(--text-muted);">{{ r.semester }}</td>
+          <td>${{ '{:,.2f}'.format(r.amount) }}</td>
+          <td style="color:#10b981;">${{ '{:,.2f}'.format(r.paid_amount) }}</td>
+          <td style="font-weight:600;color:{% if r.balance > 0 %}#ef4444{% else %}#10b981{% endif %};">${{ '{:,.2f}'.format(r.balance) }}</td>
+          <td style="font-size:.8rem;color:var(--text-muted);">{{ r.due_date.strftime('%b %d, %Y') if r.due_date else '—' }}</td>
+          <td><span class="badge-soft badge-soft-{{ 'success' if r.status == 'paid' else ('warning' if r.status == 'partial' else ('danger' if r.status == 'overdue' else 'secondary')) }}">{{ r.status }}</span></td>
+          <td class="pe-4 text-end">
+            {% if r.status != 'paid' %}
+            <a href="{{ url_for('accountant.record_payment', record_id=r.id) }}" class="btn btn-ghost btn-sm" style="color:#10b981;"><i class="bi bi-cash"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><i class="bi bi-receipt empty-state-icon"></i><div class="empty-state-title">No fee records</div></div>
+  {% endif %}
+</div>
+{% endblock %}
