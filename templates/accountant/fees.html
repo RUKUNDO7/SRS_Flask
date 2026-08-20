@@ -1,0 +1,254 @@
+{% extends 'accountant/base_accountant.html' %}
+{% block title %}Fee Records — EduRegister{% endblock %}
+{% block page_title %}Fee Records{% endblock %}
+{% block breadcrumb %}<span>Accountant</span><span>/</span>Fees{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('accountant.new_fee') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>New Record
+  </a>
+{% endblock %}
+
+{% block content %}
+
+{# Helper macro to build a sort URL keeping all current filters #}
+{% macro sort_url(col) %}
+  {{ url_for('accountant.fees',
+     search=search, status=status_filter, semester=semester_filter,
+     year_group=year_filter, assigned_class=class_filter,
+     sort=col, dir='asc' if (sort_by == col and sort_dir == 'desc') else 'desc',
+     page=1) }}
+{% endmacro %}
+
+{% macro sort_icon(col) %}
+  {% if sort_by == col %}
+    <i class="bi bi-caret-{{ 'down' if sort_dir == 'desc' else 'up' }}-fill ms-1"
+       style="font-size:.65rem;"></i>
+  {% else %}
+    <i class="bi bi-chevron-expand ms-1" style="font-size:.65rem;opacity:.35;"></i>
+  {% endif %}
+{% endmacro %}
+
+<!-- Filters -->
+<div class="filter-bar mb-4">
+  <form method="GET" class="row g-2 align-items-end">
+    <input type="hidden" name="sort" value="{{ sort_by }}">
+    <input type="hidden" name="dir"  value="{{ sort_dir }}">
+    <div class="col-md-3">
+      <label class="form-label">Search</label>
+      <input type="text" name="search" class="form-control"
+             placeholder="Student name or ID…" value="{{ search }}" style="text-transform:none;">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Year Group</label>
+      <select name="year_group" class="form-select">
+        <option value="">All years</option>
+        <option value="Year 1" {% if year_filter == 'Year 1' %}selected{% endif %}>Year 1</option>
+        <option value="Year 2" {% if year_filter == 'Year 2' %}selected{% endif %}>Year 2</option>
+        <option value="Year 3" {% if year_filter == 'Year 3' %}selected{% endif %}>Year 3</option>
+      </select>
+    </div>
+    <div class="col-md-1">
+      <label class="form-label">Class</label>
+      <select name="assigned_class" class="form-select">
+        <option value="">All</option>
+        <option value="A" {% if class_filter == 'A' %}selected{% endif %}>A</option>
+        <option value="B" {% if class_filter == 'B' %}selected{% endif %}>B</option>
+        <option value="C" {% if class_filter == 'C' %}selected{% endif %}>C</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All</option>
+        <option value="pending"  {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="partial"  {% if status_filter == 'partial' %}selected{% endif %}>Partial</option>
+        <option value="paid"     {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+        <option value="overdue"  {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Semester</label>
+      <select name="semester" class="form-select">
+        <option value="">All</option>
+        {% for s in semesters %}
+        <option value="{{ s }}" {% if semester_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-primary flex-fill">
+        <i class="bi bi-search me-1"></i>Filter
+      </button>
+      <a href="{{ url_for('accountant.fees') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Filtered totals summary -->
+{% if year_filter or class_filter or search or status_filter %}
+<div style="margin-bottom:14px;padding:10px 16px;background:#f8fafc;border:1px solid var(--border-color);
+            border-radius:10px;font-size:.83rem;display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+  <span style="color:var(--text-muted);">Filtered results:</span>
+  {% if year_filter %}<span class="badge-soft badge-soft-info">{{ year_filter }}</span>{% endif %}
+  {% if class_filter %}<span class="badge-soft badge-soft-indigo">Class {{ class_filter }}</span>{% endif %}
+  <span style="color:var(--text-muted);">
+    Billed: <strong style="color:var(--text-primary);">Frw {{ '{:,.0f}'.format(filter_total_billed) }}</strong>
+  </span>
+  <span style="color:var(--text-muted);">
+    Paid: <strong style="color:#10b981;">Frw {{ '{:,.0f}'.format(filter_total_paid) }}</strong>
+  </span>
+  <span style="color:var(--text-muted);">
+    Balance: <strong style="color:#ef4444;">
+      Frw {{ '{:,.0f}'.format(filter_total_billed - filter_total_paid) }}
+    </strong>
+  </span>
+  <span style="color:var(--text-muted);margin-left:auto;">
+    {{ pagination.total }} record{{ 's' if pagination.total != 1 }}
+  </span>
+</div>
+{% endif %}
+
+<div class="card">
+  {% if records %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="ps-4">
+            <a href="{{ sort_url('name') }}" style="text-decoration:none;color:inherit;">
+              Student {{ sort_icon('name') }}
+            </a>
+          </th>
+          <th>Year / Class</th>
+          <th>Description</th>
+          <th>
+            <a href="{{ sort_url('amount') }}" style="text-decoration:none;color:inherit;">
+              Amount {{ sort_icon('amount') }}
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url('paid') }}" style="text-decoration:none;color:inherit;">
+              Paid {{ sort_icon('paid') }}
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url('balance') }}" style="text-decoration:none;color:inherit;">
+              Balance {{ sort_icon('balance') }}
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url('status') }}" style="text-decoration:none;color:inherit;">
+              Status {{ sort_icon('status') }}
+            </a>
+          </th>
+          <th class="pe-4 text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td class="ps-4">
+            <a href="{{ url_for('accountant.student_fees', student_id=r.student.id) }}"
+               style="font-weight:600;text-decoration:none;color:var(--text-primary);">
+              {{ r.student.user.full_name }}
+            </a><br>
+            <code>{{ r.student.student_id }}</code>
+          </td>
+          <td style="font-size:.82rem;">
+            {% if r.student.year_group %}
+              <span class="badge-soft badge-soft-info">{{ r.student.year_group }}</span>
+            {% endif %}
+            {% if r.student.assigned_class %}
+              <span class="badge-soft badge-soft-indigo ms-1">Class {{ r.student.assigned_class }}</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.83rem;">{{ r.description }}</td>
+          <td style="font-weight:600;">{{ '{:,.0f}'.format(r.amount) }}</td>
+          <td style="color:#10b981;">{{ '{:,.0f}'.format(r.paid_amount) }}</td>
+          <td style="font-weight:600;
+                     color:{% if r.balance > 0 %}#ef4444{% else %}#10b981{% endif %};">
+            {{ '{:,.0f}'.format(r.balance) }}
+          </td>
+          <td>
+            <span class="badge-soft badge-soft-{{ 'success' if r.status == 'paid'
+              else ('warning' if r.status == 'partial'
+              else ('danger' if r.status == 'overdue' else 'secondary')) }}">
+              {{ r.status }}
+            </span>
+          </td>
+          <td class="pe-4 text-end">
+            {% if r.status != 'paid' %}
+            <a href="{{ url_for('accountant.record_payment', record_id=r.id) }}"
+               class="btn btn-ghost btn-sm" style="color:#10b981;" title="Record payment">
+              <i class="bi bi-cash"></i>
+            </a>
+            {% endif %}
+            <form method="POST" action="{{ url_for('accountant.delete_fee', record_id=r.id) }}"
+                  class="d-inline" onsubmit="return confirm('Delete this fee record?')">
+              <button class="btn btn-ghost btn-sm" style="color:#ef4444;" title="Delete">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <div style="padding:14px 20px;border-top:1px solid var(--border-color);
+              display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div style="font-size:.82rem;color:var(--text-muted);">
+      Showing {{ ((pagination.page - 1) * 15) + 1 }}–{{ [pagination.page * 15, pagination.total]|min }}
+      of {{ pagination.total }}
+    </div>
+    <div style="display:flex;gap:4px;">
+      {% if pagination.has_prev %}
+      <a href="{{ url_for('accountant.fees', page=pagination.prev_num, search=search,
+                 status=status_filter, semester=semester_filter,
+                 year_group=year_filter, assigned_class=class_filter,
+                 sort=sort_by, dir=sort_dir) }}"
+         class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% endif %}
+
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <a href="{{ url_for('accountant.fees', page=p, search=search,
+                   status=status_filter, semester=semester_filter,
+                   year_group=year_filter, assigned_class=class_filter,
+                   sort=sort_by, dir=sort_dir) }}"
+           class="btn btn-sm {{ 'btn-primary' if p == pagination.page else 'btn-outline-secondary' }}">
+          {{ p }}
+        </a>
+        {% else %}
+        <span class="btn btn-sm btn-outline-secondary disabled">…</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+      <a href="{{ url_for('accountant.fees', page=pagination.next_num, search=search,
+                 status=status_filter, semester=semester_filter,
+                 year_group=year_filter, assigned_class=class_filter,
+                 sort=sort_by, dir=sort_dir) }}"
+         class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-receipt empty-state-icon"></i>
+    <div class="empty-state-title">No fee records found</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
