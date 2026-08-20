@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block sidebar_role_class %}role-admin{% endblock %}
+{% block sidebar_logo_style %}background:linear-gradient(135deg,#6366f1,#8b5cf6){% endblock %}
+{% block sidebar_role_label %}Admin Portal{% endblock %}
+{% block avatar_style %}background:linear-gradient(135deg,#6366f1,#8b5cf6){% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section-label">Overview</div>
+<a href="{{ url_for('admin.dashboard') }}"
+   class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+
+<div class="nav-section-label">Students</div>
+<a href="{{ url_for('admin.new_student') }}"
+   class="sidebar-link {% if request.endpoint == 'admin.new_student' %}active{% endif %}">
+  <i class="bi bi-person-plus"></i> Register Student
+</a>
+<a href="{{ url_for('admin.students') }}"
+   class="sidebar-link {% if request.endpoint in ('admin.students', 'admin.edit_student', 'admin.delete_student') %}active{% endif %}">
+  <i class="bi bi-people"></i> View Students
+</a>
+
+<div class="nav-section-label">Academic</div>
+<a href="{{ url_for('admin.terms') }}"
+   class="sidebar-link {% if 'admin.term' in request.endpoint %}active{% endif %}">
+  <i class="bi bi-calendar2-range"></i> Terms
+</a>
+{% endblock %}
