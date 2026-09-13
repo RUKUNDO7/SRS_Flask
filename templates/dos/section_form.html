@@ -1,0 +1,67 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}{{ 'Edit' if action == 'edit' else 'New' }} Section — EduRegister{% endblock %}
+{% block page_title %}{{ 'Edit Section' if action == 'edit' else 'New Section' }}{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span><a href="{{ url_for('dos.sections') }}" style="color:var(--text-muted);text-decoration:none;">Sections</a><span>/</span>{{ 'Edit' if action == 'edit' else 'New' }}{% endblock %}
+
+{% block content %}
+<div class="col-lg-7">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-title"><i class="bi bi-calendar3"></i> {{ 'Edit Section' if action == 'edit' else 'Create Class Section' }}</div>
+    </div>
+    <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Course *</label>
+          <select name="course_id" class="form-select" required>
+            <option value="">— Select a course —</option>
+            {% for c in courses %}
+            <option value="{{ c.id }}"
+              {% if action == 'edit' and section.course_id == c.id %}selected
+              {% elif form.get('course_id') == c.id|string %}selected{% endif %}>
+              {{ c.code }} — {{ c.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Section Name *</label>
+            <input type="text" name="section_name" class="form-control" required placeholder="e.g. Section A"
+                   value="{{ section.section_name if action == 'edit' else form.get('section_name','') }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Semester *</label>
+            <input type="text" name="semester" class="form-control" required placeholder="e.g. Fall 2024"
+                   value="{{ section.semester if action == 'edit' else form.get('semester','') }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Instructor</label>
+            <input type="text" name="instructor" class="form-control"
+                   value="{{ section.instructor if action == 'edit' else form.get('instructor','') }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Room</label>
+            <input type="text" name="room" class="form-control"
+                   value="{{ section.room if action == 'edit' else form.get('room','') }}">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label">Schedule</label>
+            <input type="text" name="schedule" class="form-control" placeholder="e.g. Mon/Wed 9:00–10:30"
+                   value="{{ section.schedule if action == 'edit' else form.get('schedule','') }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Max Students</label>
+            <input type="number" name="max_students" class="form-control" min="1"
+                   value="{{ section.max_students if action == 'edit' else form.get('max_students', 30) }}">
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>{{ 'Save Changes' if action == 'edit' else 'Create Section' }}</button>
+          <a href="{{ url_for('dos.sections') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
