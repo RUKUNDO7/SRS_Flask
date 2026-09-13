@@ -1,0 +1,95 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Terms — EduRegister{% endblock %}
+{% block page_title %}School Terms{% endblock %}
+{% block breadcrumb %}<span>Admin</span><span>/</span>Terms{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('admin.new_term') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>Add Term
+  </a>
+{% endblock %}
+
+{% block content %}
+<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:24px;">
+  Students are registered under the active term. Only one term can be active at a time.
+</p>
+
+{% if terms %}
+<div class="row g-3">
+  {% for t in terms %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100" style="{% if t.is_active %}border-left:4px solid #10b981 !important;{% endif %}">
+      <div class="card-body p-4" style="border-radius:12px;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">{{ t.name }}</div>
+            <div style="font-size:.82rem;color:var(--text-muted);">{{ t.academic_year }}</div>
+          </div>
+          {% if t.is_active %}
+            <span class="badge-soft badge-soft-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+          {% else %}
+            <span class="badge-soft badge-soft-secondary">Inactive</span>
+          {% endif %}
+        </div>
+
+        {% if t.start_date or t.end_date %}
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px;">
+          <i class="bi bi-calendar3 me-1"></i>
+          {{ t.start_date.strftime('%b %d, %Y') if t.start_date else '?' }} → {{ t.end_date.strftime('%b %d, %Y') if t.end_date else '?' }}
+        </div>
+        {% endif %}
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);text-align:center;background:#f8fafc;border-radius:8px;padding:10px 0;margin-bottom:16px;">
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;">{{ t.student_count }}</div>
+            <div style="font-size:.68rem;color:var(--text-muted);">Total</div>
+          </div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;color:#3b82f6;">{{ t.year_counts['Year 1'] }}</div>
+            <div style="font-size:.68rem;color:var(--text-muted);">Yr 1</div>
+          </div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;color:#6366f1;">{{ t.year_counts['Year 2'] }}</div>
+            <div style="font-size:.68rem;color:var(--text-muted);">Yr 2</div>
+          </div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;color:#10b981;">{{ t.year_counts['Year 3'] }}</div>
+            <div style="font-size:.68rem;color:var(--text-muted);">Yr 3</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{{ url_for('admin.term_students', term_id=t.id) }}" class="btn btn-outline-secondary btn-sm flex-fill">
+            <i class="bi bi-people me-1"></i>Students
+          </a>
+          {% if not t.is_active %}
+          <form method="POST" action="{{ url_for('admin.activate_term', term_id=t.id) }}" class="flex-fill">
+            <button type="submit" class="btn btn-outline-success btn-sm w-100">
+              <i class="bi bi-check2-circle me-1"></i>Activate
+            </button>
+          </form>
+          {% endif %}
+          {% if t.student_count == 0 %}
+          <form method="POST" action="{{ url_for('admin.delete_term', term_id=t.id) }}"
+                onsubmit="return confirm('Delete {{ t.name }}?')">
+            <button type="submit" class="btn btn-ghost btn-sm" style="color:#ef4444;"><i class="bi bi-trash"></i></button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <i class="bi bi-calendar2-range empty-state-icon"></i>
+    <div class="empty-state-title">No terms created yet</div>
+    <div class="empty-state-text">Create a term to start registering students.</div>
+    <a href="{{ url_for('admin.new_term') }}" class="btn btn-primary mt-3">
+      <i class="bi bi-plus-circle me-1"></i>Add First Term
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
