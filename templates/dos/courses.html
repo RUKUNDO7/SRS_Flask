@@ -1,0 +1,47 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}Courses — EduRegister{% endblock %}
+{% block page_title %}Courses{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span>Courses{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dos.new_course') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>Add Course
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  {% if courses %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Code</th><th>Course Name</th><th>Credits</th><th>Sections</th><th>Description</th><th class="pe-4 text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for c in courses %}
+        <tr>
+          <td class="ps-4"><span class="badge-soft badge-soft-amber">{{ c.code }}</span></td>
+          <td style="font-weight:600;">{{ c.name }}</td>
+          <td style="color:var(--text-muted);">{{ c.credits }}</td>
+          <td><span class="badge-soft badge-soft-info">{{ c.class_sections | length }}</span></td>
+          <td style="color:var(--text-muted);font-size:.83rem;">{{ c.description[:70] if c.description else '—' }}{% if c.description and c.description|length > 70 %}…{% endif %}</td>
+          <td class="pe-4 text-end">
+            <a href="{{ url_for('dos.edit_course', course_id=c.id) }}" class="btn btn-ghost btn-sm me-1"><i class="bi bi-pencil"></i></a>
+            <form method="POST" action="{{ url_for('dos.delete_course', course_id=c.id) }}" class="d-inline"
+                  onsubmit="return confirm('Delete course {{ c.code }}?')">
+              <button class="btn btn-ghost btn-sm" style="color:#ef4444;"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-book empty-state-icon"></i>
+    <div class="empty-state-title">No courses yet</div>
+    <div class="empty-state-text"><a href="{{ url_for('dos.new_course') }}">Add the first course</a></div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
