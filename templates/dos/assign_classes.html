@@ -1,0 +1,95 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}Assign Classes — EduRegister{% endblock %}
+{% block page_title %}Assign Classes{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span>Assign Classes{% endblock %}
+
+{% block content %}
+<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:24px;">
+  Auto-distribute students into Class A, B, and C per year group with balanced gender distribution.
+</p>
+
+<div class="row g-3 mb-4">
+  {% for row in summaries %}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title"><i class="bi bi-mortarboard"></i> {{ row.year_group }}</div>
+      </div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);text-align:center;background:#f8fafc;border-radius:8px;padding:12px 0;margin-bottom:14px;border:1px solid var(--border-color);">
+          {% for cls in ['A','B','C'] %}
+          <div>
+            <div style="font-size:1.4rem;font-weight:700;color:#6366f1;">{{ row.classes[cls] }}</div>
+            <div style="font-size:.72rem;color:var(--text-muted);">Class {{ cls }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% if row.unassigned > 0 %}
+        <div class="alert alert-warning py-2 mb-3" style="font-size:.8rem;">
+          <i class="bi bi-exclamation-triangle me-1"></i>{{ row.unassigned }} not yet assigned
+        </div>
+        {% else %}
+        <div style="font-size:.82rem;color:#10b981;margin-bottom:12px;"><i class="bi bi-check-circle me-1"></i>All assigned</div>
+        {% endif %}
+        <form method="POST">
+          <input type="hidden" name="year_group" value="{{ row.year_group }}">
+          <div class="form-check form-switch mb-2" style="font-size:.82rem;">
+            <input class="form-check-input" type="checkbox" name="reassign" value="1" id="re_{{ loop.index }}">
+            <label class="form-check-label" for="re_{{ loop.index }}">Re-assign already assigned</label>
+          </div>
+          <button type="submit" class="btn btn-success btn-sm w-100">
+            <i class="bi bi-shuffle me-1"></i>Auto-assign {{ row.year_group }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header-title"><i class="bi bi-list-ul"></i> Student Class List</div>
+    <form method="GET" class="d-flex gap-2">
+      <select name="year_group" class="form-select form-select-sm">
+        <option value="">All years</option>
+        {% for yg in year_groups %}
+        <option value="{{ yg }}" {% if year_filter == yg %}selected{% endif %}>{{ yg }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-outline-secondary btn-sm">Filter</button>
+    </form>
+  </div>
+  {% if students_list %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Student ID</th><th>Name</th><th>Year</th><th>Gender</th><th>Class</th>
+      </tr></thead>
+      <tbody>
+        {% for s in students_list %}
+        <tr>
+          <td class="ps-4"><code>{{ s.student_id }}</code></td>
+          <td style="font-weight:600;">{{ s.user.full_name }}</td>
+          <td><span class="badge-soft badge-soft-info">{{ s.year_group or '—' }}</span></td>
+          <td style="color:var(--text-muted);font-size:.85rem;">{{ s.gender or '—' }}</td>
+          <td>
+            {% if s.assigned_class %}
+              <span class="badge-soft badge-soft-indigo" style="font-size:.85rem;">Class {{ s.assigned_class }}</span>
+            {% else %}
+              <span class="badge-soft badge-soft-secondary">Unassigned</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-people empty-state-icon"></i>
+    <div class="empty-state-title">No students found</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
