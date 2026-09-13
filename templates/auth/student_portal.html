@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}Student Portal — EduRegister{% endblock %}
+
+{% block auth_content %}
+<div class="login-page">
+  <!-- Left: brand panel -->
+  <div class="login-brand-panel">
+    <div class="login-brand-logo">
+      <i class="bi bi-mortarboard-fill"></i>
+    </div>
+    <div class="login-brand-title">Student Portal</div>
+    <div class="login-brand-sub">Look up your assigned class using your full name</div>
+
+    <div class="login-features" style="margin-top:40px;">
+      <div class="login-feature-item">
+        <div class="login-feature-icon" style="background:rgba(59,130,246,.25);color:#93c5fd;">
+          <i class="bi bi-search"></i>
+        </div>
+        <div class="login-feature-text">Enter your full name to find your class</div>
+      </div>
+      <div class="login-feature-item">
+        <div class="login-feature-icon" style="background:rgba(16,185,129,.2);color:#6ee7b7;">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </div>
+        <div class="login-feature-text">See which class (A, B, or C) you have been assigned to</div>
+      </div>
+      <div class="login-feature-item">
+        <div class="login-feature-icon" style="background:rgba(245,158,11,.2);color:#fcd34d;">
+          <i class="bi bi-calendar2-range"></i>
+        </div>
+        <div class="login-feature-text">View your year group and current term</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="login-panel">
+    <div style="max-width:360px; width:100%; margin:0 auto;">
+
+      <!-- Back link -->
+      <a href="{{ url_for('auth.login') }}"
+         style="display:inline-flex;align-items:center;gap:6px;font-size:.82rem;
+                color:var(--text-muted);text-decoration:none;margin-bottom:32px;">
+        <i class="bi bi-arrow-left"></i> Back to staff login
+      </a>
+
+      <div class="mb-5">
+        <div class="login-form-title">Find My Class</div>
+        <div class="login-form-sub">Enter your full name below</div>
+      </div>
+
+      <!-- Lookup form -->
+      <form method="POST" action="{{ url_for('auth.student_login') }}">
+        <div class="mb-4">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" name="full_name"
+                   placeholder="e.g. John Doe" required autofocus
+                   style="text-transform:none;"
+                   value="{{ request.form.get('full_name','') }}" />
+          </div>
+          <div class="form-text" style="margin-top:6px;color:var(--text-light);font-size:.78rem;">
+            Enter your full name exactly as registered.
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"
+                style="padding:11px;font-size:.95rem;font-weight:600;
+                       background:#3b82f6;border-color:#3b82f6;">
+          <i class="bi bi-search me-2"></i>Look Up My Class
+        </button>
+      </form>
+
+      <!-- Not found message -->
+      {% if not_found %}
+      <div style="margin-top:24px;padding:14px 16px;border-radius:10px;
+                  background:#fef2f2;border:1px solid #fecaca;
+                  display:flex;align-items:center;gap:10px;">
+        <i class="bi bi-exclamation-circle-fill" style="color:#ef4444;font-size:1.1rem;flex-shrink:0;"></i>
+        <div style="font-size:.85rem;color:#7f1d1d;">
+          No student found with that name. Please check the spelling and try again.
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Result card -->
+      {% if student %}
+      <div style="margin-top:28px;border-radius:14px;overflow:hidden;
+                  border:1px solid rgba(59,130,246,.3);
+                  background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(99,102,241,.06));">
+
+        <!-- Header -->
+        <div style="padding:16px 20px;background:linear-gradient(135deg,#3b82f6,#6366f1);
+                    display:flex;align-items:center;gap:12px;">
+          <div style="width:44px;height:44px;border-radius:10px;
+                      background:rgba(255,255,255,.2);backdrop-filter:blur(4px);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:1.2rem;font-weight:700;color:#fff;flex-shrink:0;">
+            {{ student.user.full_name[0].upper() }}
+          </div>
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:.97rem;">{{ student.user.full_name }}</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.7);">
+              <code style="background:rgba(255,255,255,.15);color:#fff;border-radius:4px;padding:1px 6px;">
+                {{ student.student_id }}
+              </code>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+
+          <!-- Assigned class — most prominent -->
+          <div style="text-align:center;padding:14px;border-radius:10px;
+                      background:rgba(255,255,255,.6);border:1px solid rgba(59,130,246,.15);">
+            <div style="font-size:.72rem;font-weight:600;letter-spacing:.1em;
+                        text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">
+              Assigned Class
+            </div>
+            {% if student.assigned_class %}
+            <div style="font-size:2.5rem;font-weight:800;
+                        background:linear-gradient(135deg,#3b82f6,#6366f1);
+                        -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                        line-height:1;">
+              Class {{ student.assigned_class }}
+            </div>
+            {% else %}
+            <div style="font-size:1rem;color:var(--text-muted);font-style:italic;">
+              Not yet assigned — check back later
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Other info -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="padding:10px 14px;border-radius:8px;
+                        background:rgba(255,255,255,.5);border:1px solid rgba(0,0,0,.06);">
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;
+                          color:var(--text-muted);font-weight:600;">Year Group</div>
+              <div style="font-weight:700;font-size:.92rem;margin-top:3px;color:var(--text-primary);">
+                {{ student.year_group or '—' }}
+              </div>
+            </div>
+            <div style="padding:10px 14px;border-radius:8px;
+                        background:rgba(255,255,255,.5);border:1px solid rgba(0,0,0,.06);">
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;
+                          color:var(--text-muted);font-weight:600;">Status</div>
+              <div style="font-weight:700;font-size:.92rem;margin-top:3px;
+                          color:{% if student.status == 'active' %}#10b981{% else %}#64748b{% endif %};">
+                {{ student.status | capitalize }}
+              </div>
+            </div>
+            {% if student.term %}
+            <div style="padding:10px 14px;border-radius:8px;grid-column:span 2;
+                        background:rgba(255,255,255,.5);border:1px solid rgba(0,0,0,.06);">
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;
+                          color:var(--text-muted);font-weight:600;">Term</div>
+              <div style="font-weight:700;font-size:.92rem;margin-top:3px;color:var(--text-primary);">
+                {{ student.term.name }} — {{ student.term.academic_year }}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <p class="text-center mt-4" style="font-size:.78rem;color:var(--text-light);">
+        EduRegister &copy; 2026
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
