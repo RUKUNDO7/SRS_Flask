@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block sidebar_role_class %}role-dos{% endblock %}
+{% block sidebar_logo_style %}background:linear-gradient(135deg,#10b981,#059669){% endblock %}
+{% block sidebar_role_label %}DOS Portal{% endblock %}
+{% block avatar_style %}background:linear-gradient(135deg,#10b981,#059669){% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section-label">Overview</div>
+<a href="{{ url_for('dos.dashboard') }}"
+   class="sidebar-link {% if request.endpoint == 'dos.dashboard' %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+
+<div class="nav-section-label">Students</div>
+<a href="{{ url_for('dos.students') }}"
+   class="sidebar-link {% if 'dos.student' in request.endpoint %}active{% endif %}">
+  <i class="bi bi-people"></i> All Students
+</a>
+<a href="{{ url_for('dos.assign_classes') }}"
+   class="sidebar-link {% if request.endpoint == 'dos.assign_classes' %}active{% endif %}">
+  <i class="bi bi-grid-3x3-gap"></i> Assign Classes
+</a>
+
+<div class="nav-section-label">Academic</div>
+<a href="{{ url_for('dos.sections') }}"
+   class="sidebar-link {% if 'dos.section' in request.endpoint %}active{% endif %}">
+  <i class="bi bi-calendar3"></i> Class Sections
+</a>
+{% endblock %}
