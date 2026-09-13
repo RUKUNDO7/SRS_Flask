@@ -1,0 +1,118 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}Dashboard — EduRegister{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span>Dashboard{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dos.assign_classes') }}" class="btn btn-success btn-sm">
+    <i class="bi bi-grid-3x3-gap me-1"></i>Assign Classes
+  </a>
+  <a href="{{ url_for('dos.new_course') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>Add Course
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#10b981;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-emerald"><i class="bi bi-people"></i></div>
+        <div><div class="stat-value">{{ stats.total_students }}</div><div class="stat-label">Active Students</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#ef4444;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-red"><i class="bi bi-exclamation-circle"></i></div>
+        <div><div class="stat-value">{{ stats.unassigned }}</div><div class="stat-label">Unassigned</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#f59e0b;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-amber"><i class="bi bi-book"></i></div>
+        <div><div class="stat-value">{{ stats.total_courses }}</div><div class="stat-label">Courses</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:#6366f1;"></div>
+      <div class="stat-card-body">
+        <div class="stat-icon icon-indigo"><i class="bi bi-person-check"></i></div>
+        <div><div class="stat-value">{{ stats.total_enrollments }}</div><div class="stat-label">Enrollments</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% if unassigned_students %}
+  <div class="col-lg-4">
+    <div class="card h-100" style="border-left:4px solid #ef4444 !important;">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header-title" style="color:#ef4444;"><i class="bi bi-exclamation-circle-fill"></i> Needs Assignment</div>
+        <a href="{{ url_for('dos.assign_classes') }}" class="btn btn-danger btn-sm">Assign Now</a>
+      </div>
+      <div style="overflow-y:auto;max-height:320px;">
+        {% for s in unassigned_students %}
+        <div style="padding:10px 20px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:600;font-size:.85rem;">{{ s.user.full_name }}</div>
+            <div style="font-size:.75rem;color:var(--text-muted);">{{ s.gender or 'Unknown gender' }}</div>
+          </div>
+          <span class="badge-soft badge-soft-info">{{ s.year_group }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="col-lg-{{ '8' if unassigned_students else '12' }}">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header-title"><i class="bi bi-calendar3"></i> Recent Sections</div>
+        <a href="{{ url_for('dos.sections') }}" class="btn btn-outline-secondary btn-sm">View all</a>
+      </div>
+      {% if sections %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead><tr>
+            <th class="ps-4">Course</th><th>Section</th><th>Semester</th><th>Seats</th><th class="pe-4 text-end"></th>
+          </tr></thead>
+          <tbody>
+            {% for sec in sections %}
+            <tr>
+              <td class="ps-4"><span class="badge-soft badge-soft-amber">{{ sec.course.code }}</span></td>
+              <td style="font-weight:600;">{{ sec.section_name }}</td>
+              <td><span class="badge-soft badge-soft-secondary">{{ sec.semester }}</span></td>
+              <td>
+                <span class="badge-soft badge-soft-{{ 'danger' if sec.enrolled_count >= sec.max_students else 'success' }}">
+                  {{ sec.enrolled_count }}/{{ sec.max_students }}
+                </span>
+              </td>
+              <td class="pe-4 text-end">
+                <a href="{{ url_for('dos.section_enrollments', section_id=sec.id) }}" class="btn btn-ghost btn-sm"><i class="bi bi-people"></i></a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-calendar3 empty-state-icon"></i>
+        <div class="empty-state-title">No sections yet</div>
+        <div class="empty-state-text"><a href="{{ url_for('dos.new_section') }}">Create one</a></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
