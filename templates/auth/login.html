@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — EduRegister{% endblock %}
+
+{% block auth_content %}
+<div class="login-page">
+  <!-- Left: brand panel -->
+  <div class="login-brand-panel">
+    <div class="login-brand-logo">
+      <i class="bi bi-mortarboard-fill"></i>
+    </div>
+    <div class="login-brand-title">EduRegister</div>
+    <div class="login-brand-sub">Student Registration &amp; Management System</div>
+
+    <div class="login-features">
+      <div class="login-feature-item">
+        <div class="login-feature-icon" style="background:rgba(99,102,241,.25);color:#a5b4fc;">
+          <i class="bi bi-person-badge"></i>
+        </div>
+        <div class="login-feature-text">Role-based portals for Admin, DOS &amp; Accountant</div>
+      </div>
+      <div class="login-feature-item">
+        <div class="login-feature-icon" style="background:rgba(16,185,129,.2);color:#6ee7b7;">
+          <i class="bi bi-calendar2-range"></i>
+        </div>
+        <div class="login-feature-text">Term-based student registration &amp; tracking</div>
+      </div>
+      <div class="login-feature-item">
+        <div class="login-feature-icon" style="background:rgba(245,158,11,.2);color:#fcd34d;">
+          <i class="bi bi-cash-coin"></i>
+        </div>
+        <div class="login-feature-text">Fee management and financial reporting</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: login form -->
+  <div class="login-panel">
+    <div style="max-width:340px; width:100%; margin: 0 auto;">
+      <div class="mb-5">
+        <div class="login-form-title">Welcome back</div>
+        <div class="login-form-sub">Sign in to your account to continue</div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mb-4 py-2" style="font-size:.85rem;">
+              <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="mb-4">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" id="username" name="username"
+                   placeholder="Username" required autofocus
+                   style="text-transform:none;" />
+          </div>
+        </div>
+        <div class="mb-5">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="password" name="password"
+                   placeholder="Password" required />
+            <button type="button" class="input-group-text" id="togglePassword"
+                    style="cursor:pointer;background:#fff;border-left:none;"
+                    onclick="togglePasswordVisibility()"
+                    title="Show/hide password">
+              <i class="bi bi-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"
+                style="padding:11px;font-size:.95rem;font-weight:600;">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:12px;margin:28px 0 20px;">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+        <span style="font-size:.75rem;color:var(--text-light);">Are you a student?</span>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+      </div>
+
+      <!-- Student portal link -->
+      <a href="{{ url_for('auth.student_login') }}"
+         style="display:flex;align-items:center;justify-content:center;gap:10px;
+                padding:12px 20px;border-radius:10px;text-decoration:none;
+                background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);
+                color:#93c5fd;font-size:.88rem;font-weight:600;
+                transition:background .2s,border-color .2s;"
+         onmouseover="this.style.background='rgba(59,130,246,.2)';this.style.borderColor='rgba(59,130,246,.5)';"
+         onmouseout="this.style.background='rgba(59,130,246,.1)';this.style.borderColor='rgba(59,130,246,.25)';">
+        <i class="bi bi-mortarboard" style="font-size:1.1rem;"></i>
+        View My Assigned Class
+      </a>
+
+      <p class="text-center mt-4" style="font-size:.78rem;color:var(--text-light);">
+        EduRegister &copy; 2026
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePasswordVisibility() {
+    const input = document.getElementById('password');
+    const icon  = document.getElementById('toggleIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+  }
+</script>
+{% endblock %}
