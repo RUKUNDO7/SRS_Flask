@@ -1,0 +1,94 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}Enrollments — {{ section.section_name }}{% endblock %}
+{% block page_title %}{{ section.course.code }} — {{ section.section_name }}{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span><a href="{{ url_for('dos.sections') }}" style="color:var(--text-muted);text-decoration:none;">Sections</a><span>/</span>Enrollments{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dos.sections') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4" style="font-size:.85rem;color:var(--text-muted);">
+  <span>{{ section.semester }}</span>
+  {% if section.schedule %}<span>·</span><span>{{ section.schedule }}</span>{% endif %}
+  {% if section.room %}<span>·</span><span>{{ section.room }}</span>{% endif %}
+  <span>·</span>
+  <span class="badge-soft badge-soft-{{ 'danger' if section.enrolled_count >= section.max_students else 'success' }}">
+    {{ section.enrolled_count }}/{{ section.max_students }} enrolled
+  </span>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">
+          <i class="bi bi-check-circle-fill" style="color:#10b981;"></i> Enrolled Students
+          <span class="badge-soft badge-soft-success ms-1">{{ enrolled|length }}</span>
+        </div>
+      </div>
+      {% if enrolled %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead><tr>
+            <th class="ps-4">Student ID</th><th>Name</th><th>Email</th><th>Enrolled On</th><th class="pe-4 text-end">Action</th>
+          </tr></thead>
+          <tbody>
+            {% for e in enrolled %}
+            <tr>
+              <td class="ps-4"><code>{{ e.student.student_id }}</code></td>
+              <td style="font-weight:600;">{{ e.student.user.full_name }}</td>
+              <td style="color:var(--text-muted);font-size:.83rem;">{{ e.student.user.email }}</td>
+              <td style="color:var(--text-muted);font-size:.83rem;">{{ e.enrolled_at.strftime('%b %d, %Y') }}</td>
+              <td class="pe-4 text-end">
+                <form method="POST" action="{{ url_for('dos.drop_enrollment', enrollment_id=e.id) }}"
+                      onsubmit="return confirm('Drop {{ e.student.user.full_name }}?')">
+                  <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-person-dash me-1"></i>Drop</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-people empty-state-icon"></i>
+        <div class="empty-state-title">No students enrolled yet</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title"><i class="bi bi-person-plus"></i> Enroll Student</div>
+      </div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        {% if section.enrolled_count >= section.max_students %}
+          <div class="alert alert-warning py-2" style="font-size:.83rem;">
+            <i class="bi bi-exclamation-triangle me-1"></i>Section is full.
+          </div>
+        {% elif available_students %}
+        <form method="POST" action="{{ url_for('dos.enroll_student', section_id=section.id) }}">
+          <div class="mb-3">
+            <label class="form-label">Select Student</label>
+            <select name="student_id" class="form-select" required>
+              <option value="">— Choose student —</option>
+              {% for s in available_students %}
+              <option value="{{ s.id }}">{{ s.user.full_name }} ({{ s.student_id }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-person-check me-1"></i>Enroll</button>
+        </form>
+        {% else %}
+          <p style="color:var(--text-muted);font-size:.85rem;margin:0;">All active students are already enrolled.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
