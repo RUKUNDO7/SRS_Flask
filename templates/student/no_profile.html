@@ -1,0 +1,13 @@
+{% extends 'student/base_student.html' %}
+{% block title %}No Profile — EduRegister{% endblock %}
+{% block page_title %}Profile Not Found{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="empty-state">
+    <i class="bi bi-exclamation-triangle-fill empty-state-icon" style="color:#f59e0b;opacity:1;"></i>
+    <div class="empty-state-title">No student profile found</div>
+    <div class="empty-state-text">Please contact the Administrator to set up your profile.</div>
+  </div>
+</div>
+{% endblock %}
