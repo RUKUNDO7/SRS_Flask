@@ -1,0 +1,57 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}{{ student.user.full_name }} — Schedule{% endblock %}
+{% block page_title %}Student Schedule{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span><a href="{{ url_for('dos.students') }}" style="color:var(--text-muted);text-decoration:none;">Students</a><span>/</span>Schedule{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dos.students') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;">
+    {{ student.user.full_name[0].upper() }}
+  </div>
+  <div>
+    <div style="font-weight:700;font-size:1rem;">{{ student.user.full_name }}</div>
+    <div style="font-size:.82rem;color:var(--text-muted);">
+      <code>{{ student.student_id }}</code> ·
+      {% if student.year_group %}<span class="badge-soft badge-soft-info">{{ student.year_group }}</span>{% endif %}
+      {% if student.assigned_class %}<span class="badge-soft badge-soft-indigo ms-1">Class {{ student.assigned_class }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  {% if enrollments %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Course</th><th>Section</th><th>Instructor</th><th>Schedule</th><th>Room</th><th class="pe-4">Semester</th>
+      </tr></thead>
+      <tbody>
+        {% for e in enrollments %}
+        <tr>
+          <td class="ps-4">
+            <span class="badge-soft badge-soft-amber">{{ e.class_section.course.code }}</span>
+            <div style="font-size:.75rem;color:var(--text-muted);">{{ e.class_section.course.name }}</div>
+          </td>
+          <td style="font-weight:600;">{{ e.class_section.section_name }}</td>
+          <td style="color:var(--text-muted);font-size:.85rem;">{{ e.class_section.instructor or '—' }}</td>
+          <td style="font-size:.83rem;">{{ e.class_section.schedule or '—' }}</td>
+          <td style="color:var(--text-muted);font-size:.83rem;">{{ e.class_section.room or '—' }}</td>
+          <td class="pe-4"><span class="badge-soft badge-soft-secondary">{{ e.class_section.semester }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-calendar3 empty-state-icon"></i>
+    <div class="empty-state-title">No classes assigned yet</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
