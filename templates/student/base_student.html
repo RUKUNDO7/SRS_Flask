@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block sidebar_role_class %}role-student{% endblock %}
+{% block sidebar_logo_style %}background:linear-gradient(135deg,#3b82f6,#2563eb){% endblock %}
+{% block sidebar_role_label %}Student Portal{% endblock %}
+{% block avatar_style %}background:linear-gradient(135deg,#3b82f6,#2563eb){% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section-label">My Portal</div>
+<a href="{{ url_for('student.dashboard') }}"
+   class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+  <i class="bi bi-house"></i> Dashboard
+</a>
+<a href="{{ url_for('student.classes') }}"
+   class="sidebar-link {% if request.endpoint == 'student.classes' %}active{% endif %}">
+  <i class="bi bi-calendar3"></i> My Classes
+</a>
+<a href="{{ url_for('student.fees') }}"
+   class="sidebar-link {% if request.endpoint == 'student.fees' %}active{% endif %}">
+  <i class="bi bi-receipt"></i> My Fees
+</a>
+<a href="{{ url_for('student.profile') }}"
+   class="sidebar-link {% if request.endpoint == 'student.profile' %}active{% endif %}">
+  <i class="bi bi-person-circle"></i> My Profile
+</a>
+{% endblock %}
