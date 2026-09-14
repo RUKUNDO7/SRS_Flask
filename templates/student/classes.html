@@ -1,0 +1,53 @@
+{% extends 'student/base_student.html' %}
+{% block title %}My Classes — EduRegister{% endblock %}
+{% block page_title %}My Classes{% endblock %}
+{% block breadcrumb %}<span>Student</span><span>/</span>Classes{% endblock %}
+
+{% block content %}
+{% if enrollments %}
+<div class="row g-3">
+  {% for e in enrollments %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body p-4" style="border-radius:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+          <span class="badge-soft badge-soft-amber" style="font-size:.88rem;">{{ e.class_section.course.code }}</span>
+          <span class="badge-soft badge-soft-secondary">{{ e.class_section.semester }}</span>
+        </div>
+        <div style="font-weight:700;font-size:.97rem;margin-bottom:4px;">{{ e.class_section.course.name }}</div>
+        <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:16px;">{{ e.class_section.section_name }}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:.82rem;">
+          {% if e.class_section.instructor %}
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <i class="bi bi-person-fill" style="width:14px;text-align:center;"></i>{{ e.class_section.instructor }}
+          </div>
+          {% endif %}
+          {% if e.class_section.schedule %}
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <i class="bi bi-clock" style="width:14px;text-align:center;"></i>{{ e.class_section.schedule }}
+          </div>
+          {% endif %}
+          {% if e.class_section.room %}
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <i class="bi bi-geo-alt" style="width:14px;text-align:center;"></i>{{ e.class_section.room }}
+          </div>
+          {% endif %}
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <i class="bi bi-award" style="width:14px;text-align:center;"></i>{{ e.class_section.course.credits }} credits
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <i class="bi bi-calendar3 empty-state-icon"></i>
+    <div class="empty-state-title">No classes assigned yet</div>
+    <div class="empty-state-text">Contact the Director of Studies for class assignment.</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
