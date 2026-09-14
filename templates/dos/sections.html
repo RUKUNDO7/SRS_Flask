@@ -1,0 +1,86 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}Class Sections — EduRegister{% endblock %}
+{% block page_title %}Class Sections{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span>Sections{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dos.new_section') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>New Section
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="filter-bar mb-4">
+  <form method="GET" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Course</label>
+      <select name="course_id" class="form-select">
+        <option value="">All courses</option>
+        {% for c in courses %}
+        <option value="{{ c.id }}" {% if course_filter == c.id|string %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Semester</label>
+      <select name="semester" class="form-select">
+        <option value="">All semesters</option>
+        {% for s in semesters %}
+        <option value="{{ s }}" {% if semester_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Filter</button>
+      <a href="{{ url_for('dos.sections') }}" class="btn btn-outline-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  {% if sections %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Course</th><th>Section</th><th>Instructor</th><th>Schedule</th><th>Semester</th><th>Seats</th><th class="pe-4 text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for sec in sections %}
+        <tr>
+          <td class="ps-4">
+            <span class="badge-soft badge-soft-amber">{{ sec.course.code }}</span>
+            <div style="font-size:.75rem;color:var(--text-muted);">{{ sec.course.name }}</div>
+          </td>
+          <td style="font-weight:600;">{{ sec.section_name }}</td>
+          <td style="color:var(--text-muted);font-size:.85rem;">{{ sec.instructor or '—' }}</td>
+          <td style="font-size:.83rem;">{{ sec.schedule or '—' }}</td>
+          <td><span class="badge-soft badge-soft-secondary">{{ sec.semester }}</span></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="flex:1;background:#f1f5f9;border-radius:99px;height:6px;min-width:50px;">
+                <div style="height:6px;border-radius:99px;background:{% if sec.enrolled_count >= sec.max_students %}#ef4444{% else %}#10b981{% endif %};width:{{ [[(sec.enrolled_count / sec.max_students * 100)|int, 0]|max, 100]|min if sec.max_students else 0 }}%;"></div>
+              </div>
+              <span style="font-size:.78rem;color:var(--text-muted);">{{ sec.enrolled_count }}/{{ sec.max_students }}</span>
+            </div>
+          </td>
+          <td class="pe-4 text-end">
+            <a href="{{ url_for('dos.section_enrollments', section_id=sec.id) }}" class="btn btn-ghost btn-sm me-1" title="Enrollments"><i class="bi bi-people"></i></a>
+            <a href="{{ url_for('dos.edit_section', section_id=sec.id) }}" class="btn btn-ghost btn-sm me-1" title="Edit"><i class="bi bi-pencil"></i></a>
+            <form method="POST" action="{{ url_for('dos.delete_section', section_id=sec.id) }}" class="d-inline"
+                  onsubmit="return confirm('Delete section {{ sec.section_name }}?')">
+              <button class="btn btn-ghost btn-sm" style="color:#ef4444;" title="Delete"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-calendar3 empty-state-icon"></i>
+    <div class="empty-state-title">No sections found</div>
+    <div class="empty-state-text"><a href="{{ url_for('dos.new_section') }}">Create one</a></div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
