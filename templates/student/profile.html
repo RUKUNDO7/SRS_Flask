@@ -1,0 +1,58 @@
+{% extends 'student/base_student.html' %}
+{% block title %}My Profile — EduRegister{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block breadcrumb %}<span>Student</span><span>/</span>Profile{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><i class="bi bi-person"></i> Personal Information</div></div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        <dl class="row mb-0" style="font-size:.87rem;row-gap:10px;">
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Full Name</dt>
+          <dd class="col-7" style="font-weight:600;">{{ student.user.full_name }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Student ID</dt>
+          <dd class="col-7"><code>{{ student.student_id }}</code></dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Username</dt>
+          <dd class="col-7">{{ student.user.username }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Email</dt>
+          <dd class="col-7">{{ student.user.email }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Date of Birth</dt>
+          <dd class="col-7">{{ student.date_of_birth.strftime('%B %d, %Y') if student.date_of_birth else '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Gender</dt>
+          <dd class="col-7">{{ student.gender or '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Phone</dt>
+          <dd class="col-7">{{ student.phone or '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Status</dt>
+          <dd class="col-7"><span class="badge-soft badge-soft-{{ 'success' if student.status == 'active' else 'secondary' }}">{{ student.status }}</span></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title"><i class="bi bi-mortarboard"></i> Academic & Other Details</div></div>
+      <div class="card-body p-4" style="border-radius:0 0 12px 12px;">
+        <dl class="row mb-0" style="font-size:.87rem;row-gap:10px;">
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Year Group</dt>
+          <dd class="col-7">{% if student.year_group %}<span class="badge-soft badge-soft-info">{{ student.year_group }}</span>{% else %}—{% endif %}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Class</dt>
+          <dd class="col-7">{% if student.assigned_class %}<span class="badge-soft badge-soft-indigo">Class {{ student.assigned_class }}</span>{% else %}Not assigned yet{% endif %}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Enrolled</dt>
+          <dd class="col-7">{{ student.enrollment_date.strftime('%B %d, %Y') if student.enrollment_date else '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Address</dt>
+          <dd class="col-7">{{ student.address or '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Guardian</dt>
+          <dd class="col-7">{{ student.guardian_name or '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Guardian Phone</dt>
+          <dd class="col-7">{{ student.guardian_phone or '—' }}</dd>
+          <dt class="col-5" style="color:var(--text-muted);font-weight:500;">Courses</dt>
+          <dd class="col-7">{{ student.enrollments | selectattr('status','equalto','enrolled') | list | length }} enrolled</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
