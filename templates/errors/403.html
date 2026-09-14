@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}403 Forbidden — EduRegister{% endblock %}
+{% block page_title %}Access Denied{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:480px;margin:60px auto;">
+  <div class="empty-state" style="padding:60px 40px;">
+    <div style="font-size:4rem;font-weight:800;color:#ef4444;line-height:1;">403</div>
+    <div class="empty-state-title mt-2">Access Denied</div>
+    <div class="empty-state-text">You don't have permission to view this page.</div>
+    <a href="/" class="btn btn-primary mt-4"><i class="bi bi-house me-1"></i>Go Home</a>
+  </div>
+</div>
+{% endblock %}
