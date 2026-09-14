@@ -1,0 +1,72 @@
+{% extends 'dos/base_dos.html' %}
+{% block title %}Students — DOS{% endblock %}
+{% block page_title %}Students{% endblock %}
+{% block breadcrumb %}<span>DOS</span><span>/</span>Students{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('dos.assign_classes') }}" class="btn btn-success btn-sm">
+    <i class="bi bi-grid-3x3-gap me-1"></i>Assign Classes
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="filter-bar mb-4">
+  <form method="GET" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Year Group</label>
+      <select name="year_group" class="form-select">
+        <option value="">All year groups</option>
+        {% for yg in year_groups %}
+        <option value="{{ yg }}" {% if year_filter == yg %}selected{% endif %}>{{ yg }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Class</label>
+      <select name="assigned_class" class="form-select">
+        <option value="">All classes</option>
+        {% for cls in classes %}
+        <option value="{{ cls }}" {% if class_filter == cls %}selected{% endif %}>Class {{ cls }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2 align-items-end">
+      <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Filter</button>
+      <a href="{{ url_for('dos.students') }}" class="btn btn-outline-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  {% if students %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr>
+        <th class="ps-4">Student ID</th><th>Name</th><th>Year</th><th>Class</th><th>Gender</th><th>Sections</th><th class="pe-4 text-end">Action</th>
+      </tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td class="ps-4"><code>{{ s.student_id }}</code></td>
+          <td style="font-weight:600;">{{ s.user.full_name }}</td>
+          <td><span class="badge-soft badge-soft-info">{{ s.year_group or '—' }}</span></td>
+          <td>{% if s.assigned_class %}<span class="badge-soft badge-soft-indigo">Class {{ s.assigned_class }}</span>{% else %}<span class="badge-soft badge-soft-secondary">Unassigned</span>{% endif %}</td>
+          <td style="color:var(--text-muted);font-size:.85rem;">{{ s.gender or '—' }}</td>
+          <td><span class="badge-soft badge-soft-emerald">{{ s.enrollments | selectattr('status','equalto','enrolled') | list | length }}</span></td>
+          <td class="pe-4 text-end">
+            <a href="{{ url_for('dos.student_schedule', student_id=s.id) }}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-calendar2-week me-1"></i>Schedule
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-people empty-state-icon"></i>
+    <div class="empty-state-title">No students found</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
